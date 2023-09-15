@@ -1,0 +1,97 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/05/CPU.hdl
+
+/**
+ * The Hack CPU (Central Processing unit), consisting of an ALU,
+ * two registers named A and D, and a program counter named PC.
+ * The CPU is designed to fetch and execute instructions written in 
+ * the Hack machine language. In particular, functions as follows:
+ * Executes the inputted instruction according to the Hack machine 
+ * language specification. The D and A in the language specification
+ * refer to CPU-resident registers, while M refers to the external
+ * memory location addressed by A, i.e. to Memory[A]. The inM input 
+ * holds the value of this location. If the current instruction needs 
+ * to write a value to M, the value is placed in outM, the address 
+ * of the target location is placed in the addressM output, and the 
+ * writeM control bit is asserted. (When writeM==0, any value may 
+ * appear in outM). The outM and writeM outputs are combinational: 
+ * they are affected instantaneously by the execution of the current 
+ * instruction. The addressM and pc outputs are clocked: although they 
+ * are affected by the execution of the current instruction, they commit 
+ * to their new values only in the next time step. If reset==1 then the 
+ * CPU jumps to address 0 (i.e. pc is set to 0 in next time step) rather 
+ * than to the address resulting from executing the current instruction. 
+ */
+
+CHIP CPU {
+
+    IN  inM[16],         // M value input  (M = contents of RAM[A])
+        instruction[16], // Instruction for execution
+        reset;           // Signals whether to re-start the current
+                         // program (reset==1) or continue executing
+                         // the current program (reset==0).
+
+    OUT outM[16],        // M value output
+        writeM,          // Write to M? 
+        addressM[15],    // Address in data memory (of M)
+        pc[15];          // address of next instruction
+
+    PARTS:
+    
+	//instruction[5..3] = {d1 d2 d3 = destination bits of ALU Output}
+	//instruction[3]==true: save to M
+	//instruction[4] == true: save to D
+	//instruction[5]==true: save to A register
+	
+	
+	Mux16(a[0..14] = instruction[0..14] , b = outALU , sel = instruction[15],	out=out , out = aReg); //if sel ==0, then aReg = instruction(a), otherwise aReg = outM(b)
+	
+	//if instruction[15] == true, then load A is true and Areg saves the instruction
+	//otherwise, if instruction[15]==false, then A will save the output of the ALU only if instruction[5]=destination bit d1 is true
+	Not(in = instruction[15] , out = aInstruction);
+	Or(a = aInstruction , b= instruction[5] , out = loadA); 
+	ARegister(in = aReg , load = loadA ,  out = aRegOut ,out[0..14]=currAdd, out[0..14] = addressM);
+	
+	
+	//M Register 
+	And(a = true , b = instruction[3] , out = writeMFF);
+	And(a = writeMFF , b = instruction[15] , out = writeM1 , out = writeM);
+	Register(in = outALU , load = writeM1 , out = inM1);
+	
+	
+	//D register saves the output of ALU only if d2=instruction[4] is true
+	And(a = instruction[15] , b= instruction[4] , out = controlD);
+	DRegister(in= outALU ,load= controlD ,out= ALUIn1);
+	
+	//choose between A register and M register for the second input of the ALU
+	//(change 13/09) b from inM1 to inM
+	Mux16(a = aRegOut , b = inM , sel = instruction[12] , out = ALUIn2);
+	
+	//logic to implement the PC load bit
+	//j1 j2 j3 == instruction[2..0]
+	//j1 == 1 : ALU_out < 0 
+	//j2 == 1 : ALU_out == 0
+	//j3 == 1 : ALU_out > 0 
+	Not(in = zeroOut , out = bZeroOut);
+	Not(in = negativeOut , out = bNegativeOut);
+	And(a = bZeroOut , b = bNegativeOut , out = positiveOut);
+
+	And(a = zeroOut , b = instruction[1] , out = jmp2);
+	And(a = negativeOut , b = instruction[2] , out = jmp1);
+	And(a = positiveOut , b = instruction[0] , out = jmp3);
+	Or(a = jmp1 , b = jmp2 , out = jmp12);
+	Or(a = jmp12 , b = jmp3 , out = jmp123);
+	Mux(a = false , b = jmp123 , sel = instruction[15] , out = loadPC);
+	PC(in= aRegOut , load=loadPC , inc=true ,reset=reset ,out[0..14]= pc);
+	
+	ALU(x= ALUIn1  ,y= ALUIn2 ,zx= instruction[11] , nx= instruction[10] ,zy= instruction[9] ,ny= instruction[8] ,f= instruction[7] ,no= instruction[6] , out= outALU, out= outM , zr= zeroOut , ng= negativeOut );
+	
+	
+	
+	
+	
+	
+	
+}
