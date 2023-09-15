@@ -1,0 +1,44 @@
+// This file is part of the materials accompanying the book 
+// "The Elements of Computing Systems" by Nisan and Schocken, 
+// MIT Press. Book site: www.idc.ac.il/tecs
+// File name: projects/03/b/RAM512.hdl
+
+/**
+ * Memory of 512 registers, each 16 bit-wide. Out holds the value
+ * stored at the memory location specified by address. If load==1, then 
+ * the in value is loaded into the memory location specified by address 
+ * (the loaded value will be emitted to out from the next time step onward).
+ */
+
+CHIP RAM512 {
+    IN in[16], load, address[9];
+    OUT out[16];
+
+    PARTS:
+    
+	
+	RAM64(in = w1 , load = load, address = address[0..5] , out = w11); 
+	RAM64(in = w2 , load = load,address = address[0..5] , out = w22);
+	RAM64(in = w3 , load = load,address = address[0..5] , out = w33);
+	RAM64(in = w4 , load = load,address = address[0..5] , out = w44);
+	RAM64(in = w5 , load = load,address = address[0..5] , out = w55);
+	RAM64(in = w6 , load = load,address = address[0..5] , out = w66);
+	RAM64(in = w7 , load = load,address = address[0..5] , out = w77);
+	RAM64(in = w8 , load = load,address = address[0..5] , out = w88);
+	
+	DMux8Way(in=true ,sel=address[6..8] ,a=ram1 ,b=ram2 ,c=ram3 ,d=ram4 ,e=ram5 ,f=ram6 ,g=ram7 ,h=ram8); //depending on address,select the appriopriate RAM64 chip.
+	
+	
+	//we can then use the Mux16 chip to either channel, the given input value or the previous value to the addressed-register
+	Mux16(a = w11 , b = in , sel = ram1 , out = w1);
+	Mux16(a = w22 , b = in , sel = ram2 , out = w2);
+	Mux16(a = w33 , b = in , sel = ram3 , out = w3);
+	Mux16(a = w44 , b = in , sel = ram4 , out = w4);
+	Mux16(a = w55 , b = in , sel = ram5 , out = w5);
+	Mux16(a = w66 , b = in , sel = ram6 , out = w6);
+	Mux16(a = w77 , b = in , sel = ram7 , out = w7);
+	Mux16(a = w88 , b = in , sel = ram8 , out = w8);
+	
+	//at the end, we use the Mux8Way16 Chip to select between the 8 outputs and give the final output value.
+	Mux8Way16(a=w11 ,b=w22 ,c=w33 ,d=w44 ,e=w55 ,f=w66 ,g=w77 ,h=w88 ,sel=address[6..8] , out = out  ); // select the register's output
+}

@@ -1,0 +1,39 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/03/b/RAM16K.hdl
+
+/**
+ * Memory of 16K registers, each 16 bit-wide. Out holds the value
+ * stored at the memory location specified by address. If load==1, then 
+ * the in value is loaded into the memory location specified by address 
+ * (the loaded value will be emitted to out from the next time step onward).
+ */
+
+CHIP RAM16K {
+    IN in[16], load, address[14];
+    OUT out[16];
+
+    PARTS:
+    
+	
+	
+	RAM4K(in = w1 , load = load, address = address[0..11] , out = w11); 
+	RAM4K(in = w2 , load = load,address = address[0..11], out = w22);
+	RAM4K(in = w3 , load = load,address = address[0..11] , out = w33);
+	RAM4K(in = w4 , load = load,address = address[0..11] , out = w44);
+
+	
+	DMux4Way(in=true ,sel=address[12..13] ,a=ram1 ,b=ram2 ,c=ram3 ,d=ram4); //depending on address,select the appriopriate RAM64 chip.
+	
+	
+	//we can then use the Mux16 chip to either channel, the given input value or the previous value to the addressed-register
+	Mux16(a = w11 , b = in , sel = ram1 , out = w1);
+	Mux16(a = w22 , b = in , sel = ram2 , out = w2);
+	Mux16(a = w33 , b = in , sel = ram3 , out = w3);
+	Mux16(a = w44 , b = in , sel = ram4 , out = w4);
+	
+	
+	//at the end, we use the Mux8Way16 Chip to select between the 8 outputs and give the final output value.
+	Mux4Way16(a=w11 ,b=w22 ,c=w33 ,d=w44 ,sel=address[12..13] , out = out  ); // select the register's output
+}
