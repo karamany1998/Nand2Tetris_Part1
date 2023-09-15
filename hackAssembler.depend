@@ -1,0 +1,9 @@
+# depslib dependency file v1.0
+1694795068 source:c:\users\mkara\onedrive\desktop\moocs\nand2tetris\hackassembler\main.cpp
+	<iostream>
+	<map>
+	<vector>
+	<fstream>
+	<algorithm>
+	<sstream>
+
