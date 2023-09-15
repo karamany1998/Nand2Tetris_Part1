@@ -1,0 +1,5 @@
+The hack assembler takes a file *.asm and converts it into a *.hack file(machine code) where each instruction is 16-bits.
+Initially, the program initializes the symbol table and inserts the pre-defined symbols in it, then it performs a "first-pass" where all the
+label symbols(xxx) are extracted and xxx now stands for address of next instruction in the program.
+After that a "second-pass" is performed where both the variables symbols and the instructions themselves are translated into machine code, then
+outputed into a *.txt file
