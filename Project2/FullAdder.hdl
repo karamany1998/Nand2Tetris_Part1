@@ -1,0 +1,62 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/02/FullAdder.hdl
+
+/**
+ * Computes the sum of three bits.
+ */
+
+CHIP FullAdder {
+    IN a, b, c;  // 1-bit inputs
+    OUT sum,     // Right bit of a + b + c
+        carry;   // Left bit of a + b + c
+
+    PARTS:
+    // Put you code here:
+
+    Not(in = a , out = notA);
+    Not(in= b , out = notB);
+    Not(in = c , out = notC);
+  
+    And(a = notA , b = notB , out = w1);
+    And(a = w1 , b = c , out = firstSum);
+
+   And(a = notA , b = b , out = w2);
+    And(a = w2 , b = notC , out = secondSum);
+
+    And(a = a , b = notB , out = w3);
+    And(a = w3 , b = notC , out = thirdSum);
+
+
+    And(a = a , b = b , out = w4);
+    And(a = w4 , b = c , out = fourthSum);
+
+    Or(a = firstSum , b= secondSum , out = sum1);
+    Or(a = thirdSum , b = fourthSum , out=sum2);
+    Or(a = sum1 , b=  sum2 , out = sum);
+
+
+
+
+    And(a = notA , b = b , out = w11);
+    And(a = w11 , b = c , out = firstCarry);
+
+   And(a = a , b = notB , out = w22);
+    And(a = w22 , b = c , out = secondCarry);
+
+    And(a = a , b = b , out = w33);
+    And(a = w33 , b = notC , out = thirdCarry);
+
+
+    And(a = a , b = b , out = w44);
+    And(a = w44 , b = c , out = fourthCarry);
+
+    Or(a = firstCarry , b= secondCarry , out = carry1);
+    Or(a = thirdCarry , b = fourthCarry , out=carry2);
+    Or(a = carry1 , b=  carry2 , out = carry);
+
+
+  
+    
+}
